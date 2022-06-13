@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const router = express.Router();
 
 router.post('/signin', async (req, res) => {
+  //On login with remember me, the response have a valid cookie with Expires attribute for 14 days
+
   const { username, password, rememberMe } = req.body;
   const user = await User.findOne({ username });
   if (!user) {
@@ -19,6 +21,11 @@ router.post('/signin', async (req, res) => {
       .render('user/signin', { error: 'Wrong username or password' });
   }
 
+  if (rememberMe) {
+    req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 14;
+  }
+
+  req.session.user = user;
   res.setHeader('user', user.id);
   req.user = user;
   res.redirect('/user/authenticated');
@@ -59,12 +66,14 @@ router.post('/signup', async (req, res) => {
     password_hash,
   });
 
+  req.session.user = user;
   req.user = user;
 
   res.redirect('/user/authenticated'); // this is only to exit tests, change on implementations
 });
 
 router.get('/signout', (req, res) => {
+  req.session.destroy();
 
 });
 

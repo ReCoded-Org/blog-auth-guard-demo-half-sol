@@ -7,6 +7,7 @@ const articleRouter = require('./routes/articles');
 const authRouter = require('./routes/auth');
 const avatarRouter = require('./routes/avatar');
 const methodOverride = require('method-override');
+const session = require('express-session');
 const db = require('./db');
 
 const app = express();
@@ -18,6 +19,17 @@ db.connect();
 // Set view engine and views dir
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+app.use(session({
+  name: 'sid',
+  secret: process.env.SECRET_KEY,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+
+  }
+}))
+
 
 const middleware = [
   partials(), // allows layouts

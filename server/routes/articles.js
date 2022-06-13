@@ -1,12 +1,23 @@
 const express = require('express');
 const Article = require('./../models/article');
+const authenticate = require('../middlewares/authenticate');
 const router = express.Router();
 
-router.get('/new', (req, res) => {
+/*router.get('/todos', function() {
+  return (req, res, next) => {
+
+  }
+}, () => {
+
+});*/
+
+// fn req, res, next
+
+router.get('/new', authenticate(), (req, res) => {
   res.render('articles/new', { article: new Article() });
 });
 
-router.get('/edit/:id', async (req, res) => {
+router.get('/edit/:id', authenticate(), async (req, res) => {
   const article = await Article.findById(req.params.id);
   res.render('articles/edit', { article: article });
 });
@@ -35,7 +46,18 @@ router.put(
   saveArticleAndRedirect('edit')
 );
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate(), async (req, res) => {
+  const article = await Article.findOne({_id: req.params.id});
+
+  if (!article) {
+    return res.status(404).send();
+  }
+
+  if (article.author !== req.user._id) {
+     // forbidden
+    res.status(403).send();
+  }
+
   await Article.findByIdAndDelete(req.params.id);
   res.redirect('/');
 });
